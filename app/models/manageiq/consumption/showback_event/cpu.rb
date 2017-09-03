@@ -14,18 +14,18 @@ module ManageIQ::Consumption::ShowbackEvent::CPU
   # Return Number Ocurrences
   #
   def CPU_number(value)
-    return value
+    value
   end
 
   #
   #  Return the max number of cpu for object
   #
   def CPU_max_number_of_cpu(value)
-    if resource.class.name.ends_with?("Container")
-      numcpus = resource.vim_performance_states.last.state_data[:numvcpus]
-    else
-      numcpus = if resource.methods.include?(:cpu_total_cores) then resource.cpu_total_cores else 0 end
-    end
+    numcpus = if resource.class.name.ends_with?("Container")
+                resource.vim_performance_states.last.state_data[:numvcpus]
+              else
+                resource.methods.include?(:cpu_total_cores) ? resource.cpu_total_cores : 0
+              end
     [value, numcpus].max.to_i
   end
 end

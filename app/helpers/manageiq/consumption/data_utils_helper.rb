@@ -14,9 +14,9 @@ module ManageIQ::Consumption
       result = true
       test = {} if test.empty?
       HashDiff.diff(context, test).each do |x|
-        result = false if (x[0] == '+' || x[0] == '~')
+        result = false if x[0] == '+' || x[0] == '~'
       end
-      return result
+      result
     end
   end
 end

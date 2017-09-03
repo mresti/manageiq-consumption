@@ -10,48 +10,53 @@ module ManageIQ::Consumption
   module UnitsConverterHelper
     SYMBOLS = %w(b B Hz bps Bps).freeze # What symbols are going to be searched for
 
-    SI_PREFIX = { :''  => { name: '',
-                            value: 1 },
-                  :'K' => { name: 'kilo',
-                            value: 1000 },
-                  :'M' => { name: 'mega',
-                            value: 1_000_000 },
-                  :'G' => { name: 'giga',
-                            value: 1_000_000_000 },
-                  :'T' => { name: 'tera',
-                            value: 1_000_000_000_000 },
-                  :'P' => { name: 'peta',
-                            value: 1_000_000_000_000_000 },
-                  :'E' => { name: 'exa',
-                            value:  1_000_000_000_000_000_000 },
-                  :'d' => { name: 'deci',
-                            value: 1 / 10.to_r }, # Rational
-                  :'c' => { name: 'centi',
-                            value: 1 / 100.to_r },
-                  :'m' => { name: 'milli',
-                            value: 1 / 1000.to_r },
-                  :'µ' => { name: 'micro',
-                            value: 1 / 1000_000.to_r},
-                  :'n' => { name: 'nano',
-                            value: 1 / 1000_000_000.to_r},
-                  :'p' => { name: 'pico',
-                            value: 1 / 1000_000_000_000.to_r} }.freeze
-    BINARY_PREFIX = { :''   => { name: '',
-                                 value: 1},
-                      :'Ki' => { name: 'kibi',
-                                 value: 1024},
-                      :'Mi' => { name: 'mebi',
-                                 value: 1_048_576},
-                      :'Gi' => { name: 'gibi',
-                                 value: 1_073_741_824},
-                      :'Ti' => { name: 'tebi',
-                                 value: 1_099_511_627_776},
-                      :'Pi' => { name: 'pebi',
-                                 value: 1_125_899_906_842_624},
-                      :'Ei' => { name: 'exbi',
-                                 value: 1_152_921_504_606_846_976} }.freeze
+    SI_PREFIX = {
+      :'' => {:name  => '',
+              :value => 1},
+      :K  => {:name  => 'kilo',
+              :value => 1_000},
+      :M  => {:name  => 'mega',
+              :value => 1_000_000},
+      :G  => {:name  => 'giga',
+              :value => 1_000_000_000},
+      :T  => {:name  => 'tera',
+              :value => 1_000_000_000_000},
+      :P  => {:name  => 'peta',
+              :value => 1_000_000_000_000_000},
+      :E  => {:name  => 'exa',
+              :value => 1_000_000_000_000_000_000},
+      :d  => {:name  => 'deci',
+              :value => 1 / 10.to_r}, # Rational
+      :c  => {:name  => 'centi',
+              :value => 1 / 100.to_r},
+      :m  => {:name  => 'milli',
+              :value => 1 / 1_000.to_r},
+      :µ  => {:name  => 'micro',
+              :value => 1 / 1_000_000.to_r},
+      :n  => {:name  => 'nano',
+              :value => 1 / 1_000_000_000.to_r},
+      :p  => {:name  => 'pico',
+              :value => 1 / 1_000_000_000_000.to_r}
+    }.freeze
 
-    ALL_PREFIXES = (SI_PREFIX.merge BINARY_PREFIX).freeze
+    BINARY_PREFIX = {
+      :'' => {:name  => '',
+              :value => 1},
+      :Ki => {:name  => 'kibi',
+              :value => 1_024},
+      :Mi => {:name  => 'mebi',
+              :value => 1_048_576},
+      :Gi => {:name  => 'gibi',
+              :value => 1_073_741_824},
+      :Ti => {:name  => 'tebi',
+              :value => 1_099_511_627_776},
+      :Pi => {:name  => 'pebi',
+              :value => 1_125_899_906_842_624},
+      :Ei => {:name  => 'exbi',
+              :value => 1_152_921_504_606_846_976}
+    }.freeze
+
+    ALL_PREFIXES = SI_PREFIX.merge(BINARY_PREFIX).freeze
 
     def self.to_unit(value, unit = '', destination_unit = '', prefix_type = 'ALL_PREFIXES')
       # It returns the value converted to the new unit

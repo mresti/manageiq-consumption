@@ -48,7 +48,7 @@ RSpec.describe ManageIQ::Consumption::ShowbackPricePlan, :type => :model do
 
     context 'rating with no context' do
       let(:resource)       { FactoryGirl.create(:vm) }
-      let(:event)          { FactoryGirl.build(:showback_event, :with_vm_data, :full_month, resource: resource) }
+      let(:event)          { FactoryGirl.build(:showback_event, :with_vm_data, :full_month, :resource => resource) }
       let(:fixed_rate)     { Money.new(11) }
       let(:variable_rate)  { Money.new(7) }
       let(:fixed_rate2)    { Money.new(5) }
@@ -129,7 +129,7 @@ RSpec.describe ManageIQ::Consumption::ShowbackPricePlan, :type => :model do
 
     context 'rating with context' do
       let(:resource)      { FactoryGirl.create(:vm) }
-      let(:event)         { FactoryGirl.build(:showback_event, :with_vm_data, :full_month, :with_tags_in_context, resource: resource) }
+      let(:event)         { FactoryGirl.build(:showback_event, :with_vm_data, :full_month, :with_tags_in_context, :resource => resource) }
       let(:fixed_rate)    { Money.new(11) }
       let(:variable_rate) { Money.new(7) }
       let(:plan)  { FactoryGirl.create(:showback_price_plan) }
@@ -172,7 +172,7 @@ RSpec.describe ManageIQ::Consumption::ShowbackPricePlan, :type => :model do
         # Make rate category not found
         rate.category = 'not-found'
         rate.save
-        expect(plan.calculate_total_cost(event)).to eq(Money.new(0))
+        expect(plan.calculate_total_cost(event)).toeq(Money.new(0))
       end
 
       it 'calculates costs with one rate' do
@@ -180,7 +180,7 @@ RSpec.describe ManageIQ::Consumption::ShowbackPricePlan, :type => :model do
         event.reload
         rate2.save
         # Rating now should return the value
-        expect(plan.calculate_total_cost(event)).to eq(rate2.rate(event))
+        expect(plan.calculate_total_cost(event)).toeq(rate2.rate(event))
       end
 
       it 'returns list of costs with one rate' do
@@ -188,9 +188,8 @@ RSpec.describe ManageIQ::Consumption::ShowbackPricePlan, :type => :model do
         event.reload
         rate2.save
         # Rating now should return the value
-        expect(plan.calculate_list_of_costs(event)).to  match_array([[rate2.rate(event), rate2]])
+        expect(plan.calculate_list_of_costs(event)).to match_array([[rate2.rate(event), rate2]])
       end
-
 
       it 'calculates costs when more than one rate applies' do
         event.save
@@ -207,9 +206,8 @@ RSpec.describe ManageIQ::Consumption::ShowbackPricePlan, :type => :model do
         rate.save
         rate2.save
         # Rating now should return the value
-        expect(plan.calculate_list_of_costs(event)).to  match_array([[rate.rate(event), rate], [rate2.rate(event), rate2]])
+        expect(plan.calculate_list_of_costs(event)).to match_array([[rate.rate(event), rate], [rate2.rate(event), rate2]])
       end
-
     end
   end
 

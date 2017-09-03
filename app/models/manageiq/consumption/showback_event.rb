@@ -26,7 +26,6 @@ class ManageIQ::Consumption::ShowbackEvent < ApplicationRecord
   include_concern 'MEM'
   include_concern 'FLAVOR'
 
-
   self.table_name = 'showback_events'
 
   def start_time_before_end_time
@@ -47,31 +46,31 @@ class ManageIQ::Consumption::ShowbackEvent < ApplicationRecord
       next unless resource_type.include?(measure_type.category)
       self.data[measure_type.measure] = {}
       measure_type.dimensions.each do |dim|
-        self.data[measure_type.measure][dim] = [0,data_units[dim.to_sym] || "" ] unless measure_type.measure == "FLAVOR"
+        self.data[measure_type.measure][dim] = [0, data_units[dim.to_sym] || ""] unless measure_type.measure == "FLAVOR"
       end
     end
   end
 
   def self.events_between_month(start_of_month, end_of_month)
     ManageIQ::Consumption::ShowbackEvent.where("start_time >= ? AND end_time <= ?",
-                                                DateTime.now.utc.beginning_of_month.change(:month => start_of_month),
-                                                DateTime.now.utc.end_of_month.change(:month => end_of_month))
+                                               DateTime.now.utc.beginning_of_month.change(:month => start_of_month),
+                                               DateTime.now.utc.end_of_month.change(:month => end_of_month))
   end
 
   def self.events_actual_month
     ManageIQ::Consumption::ShowbackEvent.where("start_time >= ? AND end_time <= ?",
-                                                DateTime.now.utc.beginning_of_month,
-                                                DateTime.now.utc.end_of_month)
+                                               DateTime.now.utc.beginning_of_month,
+                                               DateTime.now.utc.end_of_month)
   end
 
   def self.events_past_month
     ManageIQ::Consumption::ShowbackEvent.where("start_time >= ? AND end_time <= ?",
-                                                                              DateTime.now.utc.beginning_of_month - 1.month,
-                                                                              DateTime.now.utc.end_of_month - 1.month)
+                                               DateTime.now.utc.beginning_of_month - 1.month,
+                                               DateTime.now.utc.end_of_month - 1.month)
   end
 
   def get_measure(category, dimension)
-    data[category][dimension] if (data && data[category])
+    data[category][dimension] if data && data[category]
   end
 
   def get_measure_unit(category, dimension)
@@ -81,7 +80,6 @@ class ManageIQ::Consumption::ShowbackEvent < ApplicationRecord
   def get_measure_value(category, dimension)
     get_measure(category, dimension).first
   end
-
 
   def get_last_flavor
     data["FLAVOR"][data["FLAVOR"].keys.max]
@@ -93,32 +91,32 @@ class ManageIQ::Consumption::ShowbackEvent < ApplicationRecord
 
   def update_event(data_units = ManageIQ::Consumption::ConsumptionManager.load_column_units)
     generate_data(data_units) unless self.data.present?
-    @metrics = if  resource.methods.include?(:metrics) then metrics_time_range(end_time,start_time.end_of_month) else [] end
-    self.data.each do |key,dimensions|
+    @metrics = if resource.methods.include?(:metrics) then metrics_time_range(end_time, start_time.end_of_month) else [] end
+    self.data.each do |key, dimensions|
       dimensions.keys.each do |dim|
-        self.data[key][dim] = [generate_metric(key,dim),  data_units[dim.to_sym] || ""]
+        self.data[key][dim] = [generate_metric(key, dim), data_units[dim.to_sym] || ""]
       end
     end
-    if @metrics.count>0
+    if @metrics.count > 0
       self.end_time = @metrics.last.timestamp
     end
     collect_tags
   end
 
-  def generate_metric(key,dim)
-    key == "FLAVOR" ? self.send("#{key}_#{dim}") : self.send("#{key}_#{dim}", get_measure_value(key,dim).to_d)
+  def generate_metric(key, dim)
+    key == "FLAVOR" ? self.send("#{key}_#{dim}") : self.send("#{key}_#{dim}", get_measure_value(key, dim).to_d)
   end
 
   def collect_tags
     if !self.context.present?
       self.context = {"tag" => {}}
     else
-      self.context["tag"] = {} unless self.context.has_key?("tag")
+      self.context["tag"] = {} unless self.context.key?("tag")
     end
     resource.tagged_with(:ns => '/managed').each do |tag|
       next unless tag.classification
       category = tag.classification.category
-      self.context["tag"][category] = [] unless self.context["tag"].has_key?(category)
+      self.context["tag"][category] = [] unless self.context["tag"].key?(category)
       self.context["tag"][category] << tag.classification.name unless self.context["tag"][category].include?(tag.classification.name)
     end
   end
@@ -152,11 +150,12 @@ class ManageIQ::Consumption::ShowbackEvent < ApplicationRecord
   # Find a pool
   def find_pool(res)
     ManageIQ::Consumption::ShowbackPool.find_by(
-        :resource => res,
-        :state    => "OPEN")
+      :resource => res,
+      :state    => "OPEN"
+    )
   end
 
-  #Get the parent of a respurce, we need ancestry here
+  # Get the parent of a respurce, we need ancestry here
   def get_parent(res, look)
     nil unless !res.methods.include?(look.tableize.singularize.to_sym)
     begin
@@ -166,7 +165,7 @@ class ManageIQ::Consumption::ShowbackEvent < ApplicationRecord
     end
   end
 
-  HARDWARE_RESOURCE = %w(Vm Host EmsCluster ExtManagementSystem ).freeze
+  HARDWARE_RESOURCE = %w(Vm Host EmsCluster ExtManagementSystem).freeze
   CONTAINER_RESOURCE = %w(Container ContainerNode ContainerProject ExtManagementSystem).freeze
 
   def assign_resource
@@ -174,9 +173,9 @@ class ManageIQ::Consumption::ShowbackEvent < ApplicationRecord
     resource_type = nil
     resource_type = resource.type.split("::")[-1] unless resource.type.nil?
     hierarchy = case
-                  when HARDWARE_RESOURCE.include?(resource_type) then HARDWARE_RESOURCE
-                  when CONTAINER_RESOURCE.include?(resource_type) then CONTAINER_RESOURCE
-                  else []
+                when HARDWARE_RESOURCE.include?(resource_type) then HARDWARE_RESOURCE
+                when CONTAINER_RESOURCE.include?(resource_type) then CONTAINER_RESOURCE
+                else []
                 end
     hierarchy.each do |hw_res|
       next if resource.type.ends_with?(hw_res)
@@ -191,7 +190,7 @@ class ManageIQ::Consumption::ShowbackEvent < ApplicationRecord
       t = Tag.find_by_classification_name(category)
       find_pool(t)&.add_event(self)
       array_children.each do |child_category|
-        tag_child = t.classification.children.detect{|c| c.name == child_category}
+        tag_child = t.classification.children.detect { |c| c.name == child_category }
         find_pool(tag_child.tag)&.add_event(self)
       end
     end

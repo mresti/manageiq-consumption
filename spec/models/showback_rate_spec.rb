@@ -143,13 +143,13 @@ module ManageIQ::Consumption
       end
 
       it 'is valid with a JSON screener' do
-        showback_rate.screener = JSON.generate({ 'tag' => { 'environment' => ['test'] } })
+        showback_rate.screener = JSON.generate('tag' => { 'environment' => ['test'] })
         showback_rate.valid?
         expect(showback_rate).to be_valid
       end
 
       pending 'is not valid with a wronly formatted screener' do
-        showback_rate.screener = JSON.generate({ 'tag' => { 'environment' => ['test'] } })
+        showback_rate.screener = JSON.generate('tag' => { 'environment' => ['test'] })
         showback_rate.valid?
         expect(showback_rate).not_to be_valid
       end
@@ -164,12 +164,12 @@ module ManageIQ::Consumption
     describe 'when the event lasts for the full month and the rates too' do
       let(:fixed_rate)    { Money.new(11) }
       let(:variable_rate) { Money.new(7) }
-      let(:showback_rate) {
+      let(:showback_rate) do
         FactoryGirl.build(:showback_rate,
                           :CPU_number,
-                          :fixed_rate => fixed_rate,
+                          :fixed_rate    => fixed_rate,
                           :variable_rate => variable_rate)
-                          }
+      end
       let(:showback_event_fm) { FactoryGirl.build(:showback_event, :full_month, :with_vm_data) }
 
       context 'empty #context, default rate per_time and per_unit' do
@@ -234,7 +234,6 @@ module ManageIQ::Consumption
         end
 
         it 'should charge an event by quantity' do
-
         end
       end
 
@@ -254,12 +253,12 @@ module ManageIQ::Consumption
     describe 'event lasts the first 15 days and the rate is monthly' do
       let(:fixed_rate)    { Money.new(11) }
       let(:variable_rate) { Money.new(7) }
-      let(:showback_rate) {
+      let(:showback_rate) do
         FactoryGirl.build(:showback_rate,
                           :CPU_number,
-                          :fixed_rate => fixed_rate,
+                          :fixed_rate    => fixed_rate,
                           :variable_rate => variable_rate)
-      }
+      end
       let(:showback_event_hm) { FactoryGirl.build(:showback_event, :first_half_month, :with_vm_data) }
       let(:proration)         { showback_event_hm.time_span.to_f / showback_event_hm.month_duration }
 
@@ -276,7 +275,7 @@ module ManageIQ::Consumption
 
         it 'should charge an event by quantity' do
           showback_rate.calculation = 'quantity'
-        # Fixed is 11 per day, variable is 7 per CPU, event has 2 CPU
+          # Fixed is 11 per day, variable is 7 per CPU, event has 2 CPU
           expect(showback_rate.rate(showback_event_hm)).to eq(Money.new(11 + 7 * 2))
         end
       end

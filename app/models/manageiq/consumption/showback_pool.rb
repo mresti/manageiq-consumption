@@ -33,11 +33,11 @@ class ManageIQ::Consumption::ShowbackPool < ApplicationRecord
     when 'OPEN' then
       raise _("Pool can't change state to CLOSED from OPEN") unless state != 'CLOSED'
       # s_time = (self.start_time + 1.months).beginning_of_month # This is never used
-      if end_time != start_time.end_of_month
-        s_time = end_time
-      else
-        s_time = (start_time + 1.month).beginning_of_month
-      end
+      s_time = if end_time != start_time.end_of_month
+                 end_time
+               else
+                 (start_time + 1.month).beginning_of_month
+               end
       e_time = s_time.end_of_month
       unless ManageIQ::Consumption::ShowbackPool.exists?(:resource => resource, :start_time => s_time)
         ManageIQ::Consumption::ShowbackPool.create(:name        => name,
@@ -53,7 +53,7 @@ class ManageIQ::Consumption::ShowbackPool < ApplicationRecord
   end
 
   def add_event(event)
-    if event.kind_of? ManageIQ::Consumption::ShowbackEvent
+    if event.kind_of?(ManageIQ::Consumption::ShowbackEvent)
       # verify that the event is not already there
       if showback_events.include?(event)
         errors.add(:showback_events, 'duplicate')
@@ -69,9 +69,9 @@ class ManageIQ::Consumption::ShowbackPool < ApplicationRecord
   # Remove events from a pool, no error is thrown
 
   def remove_event(event)
-    if event.kind_of? ManageIQ::Consumption::ShowbackEvent
+    if event.kind_of?(ManageIQ::Consumption::ShowbackEvent)
       if showback_events.include?(event)
-        showback_events.delete event
+        showback_events.delete(event)
       else
         errors.add(:showback_events, "not found")
       end
@@ -133,7 +133,7 @@ class ManageIQ::Consumption::ShowbackPool < ApplicationRecord
 
   def calculate_charge(input)
     ch = find_charge(input)
-    if ch.kind_of? ManageIQ::Consumption::ShowbackCharge
+    if ch.kind_of?(ManageIQ::Consumption::ShowbackCharge)
       ch.cost = ch.calculate_cost(find_price_plan) || Money.new(0)
       save
     elsif input.nil?
@@ -165,9 +165,9 @@ class ManageIQ::Consumption::ShowbackPool < ApplicationRecord
   end
 
   def find_charge(input)
-    if input.kind_of? ManageIQ::Consumption::ShowbackEvent
-      showback_charges.find_by :showback_event => input, :showback_pool => self
-    elsif (input.kind_of? ManageIQ::Consumption::ShowbackCharge) && (input.showback_pool == self)
+    if input.kind_of?(ManageIQ::Consumption::ShowbackEvent)
+      showback_charges.find_by(:showback_event => input, :showback_pool => self)
+    elsif input.kind_of?(ManageIQ::Consumption::ShowbackCharge) && input.showback_pool == self
       input
     end
   end

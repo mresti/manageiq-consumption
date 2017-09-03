@@ -1,5 +1,4 @@
 class ManageIQ::Consumption::ShowbackPricePlan < ApplicationRecord
-
   self.table_name = 'showback_price_plans'
   has_many :showback_rates, :dependent => :destroy, :inverse_of => :showback_price_plan
   belongs_to :resource, :polymorphic => true
@@ -15,7 +14,7 @@ class ManageIQ::Consumption::ShowbackPricePlan < ApplicationRecord
   ###################################################################
   def calculate_total_cost(event, cycle_duration = nil)
     total = 0
-    calculate_list_of_costs(event,  cycle_duration).each do |x|
+    calculate_list_of_costs(event, cycle_duration).each do |x|
       total += x[0]
     end
     total
@@ -28,18 +27,17 @@ class ManageIQ::Consumption::ShowbackPricePlan < ApplicationRecord
     tc = []
     # For each measure type in ShowbackUsageType, I need to find the rates applying to the different dimensions
     # If there is a rate associated to it, we call it with a measure (that can be 0)
-    ManageIQ::Consumption::ShowbackUsageType.where(category: resource_type).each do |usage|
+    ManageIQ::Consumption::ShowbackUsageType.where(:category => resource_type).each do |usage|
       usage.dimensions.each do |dim|
-        rates = showback_rates.where(category: usage.category, measure: usage.measure, dimension: dim)
+        rates = showback_rates.where(:category => usage.category, :measure => usage.measure, :dimension => dim)
         rates.each do |r|
-          next unless (ManageIQ::Consumption::DataUtilsHelper.is_included_in? event.context, r.screener)
+          next unless ManageIQ::Consumption::DataUtilsHelper.is_included_in?(event.context, r.screener)
           tc << [r.rate(event, cycle_duration), r]
         end
       end
     end
     tc
   end
-
 
   # Calculate total costs using input data instead of an event
   def calculate_total_cost_input(resource_type, data, context = nil, start_time = nil, end_time = nil, cycle_duration = nil)
@@ -70,7 +68,6 @@ class ManageIQ::Consumption::ShowbackPricePlan < ApplicationRecord
       _log.info("Creating #{plan_attributes_name} consumption price plan... Complete")
     end
   end
-
 
   def self.seed_file_name
     @seed_file_name ||= Pathname.new(Gem.loaded_specs['manageiq-consumption'].full_gem_path).join("db", "fixtures", "#{table_name}.yml")

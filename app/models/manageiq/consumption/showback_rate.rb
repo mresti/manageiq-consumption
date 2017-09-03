@@ -40,7 +40,7 @@ module ManageIQ::Consumption
       duration = cycle_duration || event.month_duration
       # TODO event.resource.type should be eq to category
       value, measurement = event.get_measure(measure, dimension)
-      rate_with_values(value, measurement,event.time_span, duration)
+      rate_with_values(value, measurement, event.time_span, duration)
     end
 
     def rate_with_values(value, measure, time_span, cycle_duration, date = Time.current)

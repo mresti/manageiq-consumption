@@ -26,6 +26,5 @@ module ManageIQ::Consumption
                   end
       period.div(time_span) + (period.modulo(time_span).zero? ? 0 : 1)
     end
-
   end
 end
